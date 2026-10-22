@@ -1,79 +1,24 @@
-import os
-import threading
 import time
 import telebot
 from telebot import types
 import database as db
 import Button
 
-# Lokal ishlash uchun .env fayldan o'qish (git'ga kirmaydi)
-_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+BOT_TOKEN = "8543927305:AAFMZICK47R142NBK8jQdz3Rt2mfFx4MCpo"
 
-if os.path.exists(_ENV_PATH):
-    with open(_ENV_PATH, encoding="utf-8") as _env_file:
-        for _line in _env_file:
-            _line = _line.strip()
-            if not _line or _line.startswith("#") or "=" not in _line:
-                continue
-            _key, _value = _line.split("=", 1)
-            os.environ.setdefault(
-                _key.strip(),
-                _value.strip().strip('"').strip("'")
-            )
-
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
-if not BOT_TOKEN:
-    raise SystemExit(
-        "❌ BOT_TOKEN topilmadi! Uni environment variable sifatida "
-        "yoki loyiha papkasidagi .env faylida bering."
-    )
-
-ADMINS = [
-    int(admin_id.strip())
-    for admin_id in os.environ.get("ADMINS", "7618611292").split(",")
-    if admin_id.strip()
-]
+ADMINS = [7618611292]
 
 CHANNELS = [
     {
         "name": "🎬 Bizning Kanal",
-        "id": os.environ.get("CHANNEL_ID", "-1003896833204"),
-        "url": os.environ.get("CHANNEL_URL", "https://t.me/Kino_0629")
+        "id": "-1003896833204",
+        "url": "https://t.me/Kino_0629"
     }
 ]
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
 db.init_db()
-
-
-def start_health_server():
-    """
-    Render (Web Service) 60 soniya ichida ochiq port kutadi.
-    PORT berilgan bo'lsa, kichik HTTP server ishga tushiramiz.
-    Lokal ishga tushirishda hech narsa qilmaydi.
-    """
-    port = os.environ.get("PORT")
-
-    if not port:
-        return
-
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-
-    class HealthHandler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(b"OK")
-
-        def log_message(self, *args):
-            pass
-
-    server = HTTPServer(("0.0.0.0", int(port)), HealthHandler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    print(f"🌐 Health server: 0.0.0.0:{port}", flush=True)
 
 
 def is_admin(user_id: int) -> bool:
@@ -687,22 +632,5 @@ def search_movie_handler(message: types.Message):
 
 
 if __name__ == "__main__":
-    print("🚀 Bot muvaffaqiyatli ishga tushdi...", flush=True)
-
-    start_health_server()
-
-    while True:
-        try:
-            bot.infinity_polling(
-                timeout=30,
-                long_polling_timeout=20,
-                interval=1,
-                restart_on_change=False
-            )
-        except Exception as e:
-            print(
-                f"⚠️ Ulanish uzildi: {e}\n"
-                f"🔁 5 soniyadan so'ng qayta ulaniladi...",
-                flush=True
-            )
-            time.sleep(5)
+    print("🚀 Bot muvaffaqiyatli ishga tushdi...")
+    bot.infinity_polling()
