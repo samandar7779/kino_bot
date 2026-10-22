@@ -6,10 +6,28 @@ from telebot import types
 import database as db
 import Button
 
-BOT_TOKEN = os.environ.get(
-    "BOT_TOKEN",
-    "8543927305:AAFMZICK47R142NBK8jQdz3Rt2mfFx4MCpo"
-)
+# Lokal ishlash uchun .env fayldan o'qish (git'ga kirmaydi)
+_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+
+if os.path.exists(_ENV_PATH):
+    with open(_ENV_PATH, encoding="utf-8") as _env_file:
+        for _line in _env_file:
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _key, _value = _line.split("=", 1)
+            os.environ.setdefault(
+                _key.strip(),
+                _value.strip().strip('"').strip("'")
+            )
+
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise SystemExit(
+        "❌ BOT_TOKEN topilmadi! Uni environment variable sifatida "
+        "yoki loyiha papkasidagi .env faylida bering."
+    )
 
 ADMINS = [
     int(admin_id.strip())
